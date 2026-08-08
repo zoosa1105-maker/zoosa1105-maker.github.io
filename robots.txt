@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
 Sitemap: https://zoosa1105-maker.github.io/sitemap.xml
