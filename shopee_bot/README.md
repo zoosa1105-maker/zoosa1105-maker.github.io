@@ -5,11 +5,20 @@
 ## 一次性設定
 
 1. **GitHub Secrets**(repo → Settings → Secrets and variables → Actions → Secrets):
-   - `SHOPEE_APP_ID`、`SHOPEE_SECRET`:蝦皮聯盟開放平台
+   - `SHOPEE_APP_ID`、`SHOPEE_SECRET`:蝦皮聯盟開放平台(未開通 API 可先不設,改用 Product Feed)
    - `THREADS_USER_ID`、`THREADS_ACCESS_TOKEN`:Meta 開發者後台的 Threads API
    - `ANTHROPIC_API_KEY`:寫文案用(不設就用固定範本)
 2. **GitHub Pages** 要開著(圖片、影片靠它提供公開網址給 Threads)。
 3. 此資料夾的程式與 `.github/workflows/` 需在預設分支(main)上排程才會跑。
+
+## 商品來源:兩種擇一(自動判斷)
+
+- **有設定 `SHOPEE_APP_ID` 和 `SHOPEE_SECRET`** → 用蝦皮 Open API,自動抓全站熱賣。
+- **沒設定** → 讀 `feed/` 資料夾裡的 Product Feed CSV(蝦皮聯盟後台 Creative → Product Feed 下載)。
+  - 欄位名稱中英文都能自動對應;對不到時 Actions 會列出實際欄位。
+  - 連結要用**分潤連結**才有佣金;看起來不是的,草稿預覽會出現 ⚠️ 警告。
+  - 有銷量欄位就依銷量挑,沒有就依佣金率挑並每天輪替。
+  - 已經發過的商品會記在 `shopee_bot/state/history.json`,不會重複。
 
 ## 每天怎麼用(草稿模式)
 

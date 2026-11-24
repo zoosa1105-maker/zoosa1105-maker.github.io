@@ -13,9 +13,9 @@ SYSTEM = (
 
 def _fallback(p: dict) -> str:
     return (
-        f"今天蝦皮熱賣榜上的它:{p['name'][:40]}\n"
-        f"已經賣出 {p['sales']:,} 件,{_price(p)}。\n"
-        "想看看大家都在買什麼的人,可以順手逛逛。"
+        f"今天分享蝦皮上的一個選擇:{p['name'][:40]}\n"
+        + (f"已經賣出 {p['sales']:,} 件," if p["sales"] else "") + f"{_price(p)}。\n"
+        "有需要的人可以順手看看。"
     )
 
 

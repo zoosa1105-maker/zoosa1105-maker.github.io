@@ -4,7 +4,7 @@ import datetime as dt
 import json
 import shutil
 
-from . import config, content, media, shopee, store
+from . import config, content, feed, media, shopee, store
 
 DEMO = [
     {"id": f"demo{i}", "name": n, "price": 199 + i * 100, "price_max": 199 + i * 100,
@@ -25,8 +25,14 @@ def main():
 
     if args.demo:
         picks = DEMO[:n]
-    else:
+    elif config.SHOPEE_APP_ID and config.SHOPEE_SECRET:
+        print("[來源] 蝦皮 Open API")
         picks = shopee.pick_products(shopee.fetch_hot_products(), seen, n)
+        if len(picks) < n:
+            raise SystemExit(f"可用商品只有 {len(picks)} 個,少於 {n}")
+    else:
+        print("[來源] Product Feed(feed/*.csv)")
+        picks = feed.pick_from_feed(feed.load_feed(), seen, n, today)
         if len(picks) < n:
             raise SystemExit(f"可用商品只有 {len(picks)} 個,少於 {n}")
 
@@ -55,7 +61,9 @@ def main():
             "media_url": (f"{config.MEDIA_BASE_URL}/bot-media/{today}/{media_file}" if media_file else None),
         }
         (draft_dir / f"{i:02d}.json").write_text(json.dumps(draft, ensure_ascii=False, indent=2))
-        summary.append(f"## {i}. [{kind}] {p['name']}\n\n{text}\n")
+        warn = "" if args.demo or feed.has_affiliate_link(p["link"]) else (
+            "\n⚠️ 這個連結看起來不是分潤短連結(沒有 shope.ee 等特徵),貼出去可能沒有佣金,請確認。\n")
+        summary.append(f"## {i}. [{kind}] {p['name']}\n\n{text}\n{warn}")
         if media_file:
             summary.append(f"媒體:`bot-media/{today}/{media_file}`\n")
         seen.add(p["id"])
