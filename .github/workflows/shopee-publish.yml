@@ -1,0 +1,45 @@
+name: 蝦皮草稿發到 Threads
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "草稿日期 YYYY-MM-DD(空白=今天)"
+        required: false
+      only:
+        description: "只發指定編號,例如 1,3(空白=全部)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shopee-bot
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r shopee_bot/requirements.txt
+      - name: 發布
+        run: |
+          ARGS=""
+          [ -n "${{ inputs.date }}" ] && ARGS="$ARGS --date ${{ inputs.date }}"
+          [ -n "${{ inputs.only }}" ] && ARGS="$ARGS --only ${{ inputs.only }}"
+          python -m shopee_bot.publish $ARGS
+      - name: 標記已發布
+        run: |
+          git config user.name "shopee-bot"
+          git config user.email "shopee-bot@users.noreply.github.com"
+          git add drafts
+          git diff --cached --quiet || git commit -m "bot: 標記已發布"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
